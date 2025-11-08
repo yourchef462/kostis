@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Basic Fire Safety Course</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .section { margin-bottom: 20px; }
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+        .section { margin-bottom: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .hidden { display: none; }
-        .question { margin-bottom: 15px; }
-        label { display: block; }
-        button { padding: 10px; margin-top: 10px; }
-        #language-select { margin-bottom: 20px; }
+        .question { margin-bottom: 20px; }
+        label { display: block; margin: 8px 0; }
+        button { padding: 12px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; font-weight: bold; }
+        iframe { border: none; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -19,7 +21,7 @@
 <h1>Demo Basic Fire Safety Course</h1>
 
 <div id="language-select" class="section">
-    <label>Select Language / Επιλέξτε Γλώσσα:</label>
+    <label><strong>Select Language / Επιλέξτε Γλώσσα:</strong></label>
     <select id="lang">
         <option value="en">English</option>
         <option value="el">Ελληνικά (Greek)</option>
@@ -28,118 +30,65 @@
 
 <div id="video-section" class="section">
     <h2>Watch the Video / Παρακολουθήστε το Βίντεο</h2>
-    <p>Watch this basic fire safety video (embedded from YouTube). For demo, click "I've Watched" to proceed. If the video doesn't play, open it directly: <a href="https://www.youtube.com/watch?v=yodLMfOZNvA" target="_blank">Watch on YouTube</a>.</p>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/yodLMfOZNvA" title="Fire Safety Training" frameborder="0" allowfullscreen></iframe>
-    <br>
+    <p><strong>For demo: Just click the button below to continue — no need to watch!</strong></p>
+    <p>If the video doesn't load, <a href="https://www.youtube.com/watch?v=yodLMfOZNvA" target="_blank">watch it on YouTube</a>.</p>
+    <iframe width="100%" height="315" src="https://www.youtube.com/embed/yodLMfOZNvA?rel=0" title="Fire Safety Training" allowfullscreen></iframe>
+    <br><br>
     <button id="watched-btn">I've Watched the Video / Έχω Παρακολουθήσει το Βίντεο</button>
 </div>
 
 <div id="quiz-section" class="section hidden">
     <h2>Quiz / Κουίζ</h2>
-    <p>Answer all 10 questions correctly. If any wrong, restart with slightly rephrased questions.</p>
+    <p>Answer all 10 questions correctly. If any wrong → restart with rephrased questions.</p>
     <form id="quiz-form"></form>
-    <button id="submit-btn">Submit / Υποβολή</button>
+    <button id="submit-btn">Submit Answers / Υποβολή</button>
     <div id="result"></div>
-    <button id="restart-btn" class="hidden">Restart Quiz / Επανεκκίνηση Κουίζ</button>
+    <button id="restart-btn" class="hidden">Restart Quiz / Επανεκκίνηση</button>
 </div>
 
 <script>
-    // Data structure for questions: { en: {base: [...], variations: [[...], [...]]}, el: {...} }
-    const questions = {
-        en: [
-            {
-                base: "What is the first step in the PASS method for using a fire extinguisher?",
-                variations: [
-                    "What should you do initially when operating a fire extinguisher using PASS?",
-                    "In the PASS technique for extinguishers, what's the starting action?"
-                ],
-                options: ["Aim at the base of the fire", "Pull the pin", "Squeeze the handle", "Sweep from side to side"],
-                correct: 1 // Index of correct option (0-based)
-            },
-            {
-                base: "What type of fire is a Class A fire?",
-                variations: [
-                    "Which materials are involved in a Class A fire?",
-                    "Class A fires typically involve what substances?"
-                ],
-                options: ["Electrical equipment", "Flammable liquids", "Ordinary combustibles like wood or paper", "Metals"],
-                correct: 2
-            },
-            {
-                base: "Why should you never use water on an electrical fire?",
-                variations: [
-                    "What makes water unsafe for putting out electrical fires?",
-                    "For what reason is water not recommended on fires involving electricity?"
-                ],
-                options: ["It evaporates too quickly", "It conducts electricity and can cause shock", "It makes the fire spread faster", "It damages the equipment"],
-                correct: 1
-            },
-            {
-                base: "What does RACE stand for in fire emergency procedures?",
-                variations: [
-                    "In a fire response, what is the meaning of the RACE acronym?",
-                    "The RACE protocol for fires refers to what steps?"
-                ],
-                options: ["Run, Alert, Contain, Evacuate", "Rescue, Alarm, Confine, Extinguish/Evacuate", "Report, Assess, Control, Escape", "React, Assist, Close, Exit"],
-                correct: 1
-            },
-            {
-                base: "Where should you aim a fire extinguisher when fighting a fire?",
-                variations: [
-                    "When using an extinguisher, what part of the fire do you target?",
-                    "The proper aiming point for a fire extinguisher is where?"
-                ],
-                options: ["The top of the flames", "The base of the fire", "The smoke above", "The surrounding area"],
-                correct: 1
-            },
-            {
-                base: "What is the primary cause of most workplace fires?",
-                variations: [
-                    "What often starts the majority of fires at work?",
-                    "The main reason behind most fires in professional settings is what?"
-                ],
-                options: ["Faulty electrical equipment", "Cooking accidents", "Smoking materials", "Arson"],
-                correct: 0
-            },
-            {
-                base: "How often should fire exits be checked for obstructions?",
-                variations: [
-                    "What is the recommended frequency for inspecting fire exits to ensure they're clear?",
-                    "Fire escape routes should be verified for blockages how frequently?"
-                ],
-                options: ["Weekly", "Monthly", "Daily", "Annually"],
-                correct: 2
-            },
-            {
-                base: "What should you do if your clothes catch fire?",
-                variations: [
-                    "If clothing ignites, what is the correct response?",
-                    "The proper action when your attire is on fire is what?"
-                ],
-                options: ["Run to find water", "Stop, drop, and roll", "Wave your arms to fan it out", "Remove the clothes while standing"],
-                correct: 1
-            },
-            {
-                base: "Why is it important to have a fire evacuation plan?",
-                variations: [
-                    "What makes a fire escape strategy essential?",
-                    "The value of planning for fire evacuation lies in what?"
-                ],
-                options: ["To save property", "To ensure safe and orderly exit for everyone", "To fight the fire effectively", "To comply with insurance"],
-                correct: 1
-            },
-            {
-                base: "What color is typically used for fire safety signs?",
-                variations: [
-                    "Fire-related safety signage is usually in what hue?",
-                    "The standard color for signs about fire precautions is?"
-                ],
-                options: ["Green", "Blue", "Red", "Yellow"],
-                correct: 2
-            }
-        ],
-        el: [
-            {
-                base: "Ποιο είναι το πρώτο βήμα στη μέθοδο PASS για τη χρήση πυροσβεστήρα;",
-                variations: [
-                    "Τι πρέπει να κάνετε αρχικά όταν χειρίζεστε έναν πυροσβεστήρα χρησιμοποιώντας το PA
+// === Questions Data ===
+const questions = {
+    en: [
+        { base: "What is the first step in the PASS method?", variations: ["What do you do first with a fire extinguisher?", "In PASS, what's step 1?"], options: ["Aim", "Pull the pin", "Squeeze", "Sweep"], correct: 1 },
+        { base: "What type of fire is Class A?", variations: ["Class A fires involve what?", "Which is a Class A fire?"], options: ["Electrical", "Flammable liquids", "Wood/paper", "Metals"], correct: 2 },
+        { base: "Why not use water on electrical fires?", variations: ["Water + electricity = ?", "Why avoid water on live wires?"], options: ["Too slow", "Conducts electricity", "Spreads fire", "Damages device"], correct: 1 },
+        { base: "What does RACE stand for?", variations: ["RACE in fire response means?", "RACE protocol steps?"], options: ["Run, Alert, Contain, Evacuate", "Rescue, Alarm, Confine, Extinguish", "Report, Assess, Control, Escape", "React, Assist, Close, Exit"], correct: 1 },
+        { base: "Where do you aim the extinguisher?", variations: ["Target which part of the fire?", "Aim extinguisher at?"], options: ["Top of flames", "Base of fire", "Smoke", "Nearby wall"], correct: 1 },
+        { base: "Main cause of workplace fires?", variations: ["Most common fire starter at work?", "Top workplace fire cause?"], options: ["Electrical faults", "Cooking", "Smoking", "Arson"], correct: 0 },
+        { base: "How often check fire exits?", variations: ["Inspect exits how frequently?", "Fire exit checks?"], options: ["Weekly", "Monthly", "Daily", "Yearly"], correct: 2 },
+        { base: "Clothes on fire — what to do?", variations: ["Your shirt is burning — action?", "On fire: correct response?"], options: ["Run for water", "Stop, drop, roll", "Wave arms", "Remove clothes"], correct: 1 },
+        { base: "Why have a fire evacuation plan?", variations: ["Purpose of fire escape plan?", "Evacuation plan helps with?"], options: ["Save items", "Safe exit for all", "Fight fire", "Insurance"], correct: 1 },
+        { base: "Fire safety signs color?", variations: ["Fire signs are usually what color?", "Standard fire sign color?"], options: ["Green", "Blue", "Red", "Yellow"], correct: 2 }
+    ],
+    el: [
+        { base: "Ποιο είναι το πρώτο βήμα PASS;", variations: ["PASS: πρώτη κίνηση;", "Στο PASS, τι πρώτα;"], options: ["Στοχεύω", "Τραβώ περόνη", "Πιέζω", "Σαρώνω"], correct: 1 },
+        { base: "Φωτιά Κατηγορίας A είναι;", variations: ["Κατηγορία A: υλικά;", "Ποια είναι φωτιά A;"], options: ["Ηλεκτρικά", "Υγρά", "Ξύλο/χαρτί", "Μέταλλα"], correct: 2 },
+        { base: "Γιατί όχι νερό σε ηλεκτρική φωτιά;", variations: ["Νερό + ρεύμα =;", "Αποφύγετε νερό σε καλώδια;"], options: ["Αργό", "Μεταφέρει ρεύμα", "Εξαπλώνει", "Χαλάει συσκευή"], correct: 1 },
+        { base: "Τι είναι το RACE;", variations: ["RACE στη φωτιά σημαίνει;", "Βήματα RACE;"], options: ["Τρέξε, Ειδοποίησε, Περιόρισε, Εκκένωσε", "Διάσωση, Συναγερμός, Περιορισμός, Σβήσιμο", "Αναφορά, Αξιολόγηση, Έλεγχος, Απόδραση", "Αντίδραση, Βοήθεια, Κλείσιμο, Έξοδος"], correct: 1 },
+        { base: "Πού στοχεύω πυροσβεστήρα;", variations: ["Στόχος φωτιάς;", "Πού ρίχνω πυροσβεστήρα;"], options: ["Κορυφή", "Βάση φωτιάς", "Καπνός", "Τοίχος"], correct: 1 },
+        { base: "Κύρια αιτία φωτιάς στη δουλειά;", variations: ["Συχνότερη αιτία εργασίας;", "Τι προκαλεί τις περισσότερες φωτιές;"], options: ["Ηλεκτρικά", "Μαγειρική", "Κάπνισμα", "Εμπρησμός"], correct: 0 },
+        { base: "Πόσο συχνά έλεγχος εξόδων;", variations: ["Έξοδοι κινδύνου: κάθε;", "Έλεγχος διαφυγής;"], options: ["Εβδομάδα", "Μήνας", "Καθημερινά", "Χρόνο"], correct: 2 },
+        { base: "Ρούχα φωτιά — τι κάνω;", variations: ["Καιγόμενα ρούχα: ενέργεια;", "Φωτιά στα ρούχα;"], options: ["Τρέχω για νερό", "Σταματώ, πέφτω, κυλιέμαι", "Κουνάω χέρια", "Βγάζω ρούχα"], correct: 1 },
+        { base: "Γιατί σχέδιο εκκένωσης;", variations: ["Σκοπός σχεδίου φωτιάς;", "Εκκένωση βοηθά σε;"], options: ["Σώζω αντικείμενα", "Ασφαλής έξοδος όλων", "Καταπολέμηση", "Ασφάλιση"], correct: 1 },
+        { base: "Χρώμα πινακίδων φωτιάς;", variations: ["Πινακίδες φωτιάς: χρώμα;", "Τυπικό χρώμα πυρασφάλειας;"], options: ["Πράσινο", "Μπλε", "Κόκκινο", "Κίτρινο"], correct: 2 }
+    ]
+};
+
+let currentLang = 'en';
+let attempt = 0;
+
+// === Render Quiz ===
+function renderQuiz() {
+    const form = document.getElementById('quiz-form');
+    form.innerHTML = '';
+    const qs = questions[currentLang];
+    qs.forEach((q, i) => {
+        const text = attempt === 0 ? q.base : q.variations[Math.floor(Math.random() * q.variations.length)];
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `<p><strong>${i+1}.</strong> ${text}</p>`;
+        q.options.forEach((opt, j) => {
+            div.innerHTML += `
+                <label>
+                    <input type="r
